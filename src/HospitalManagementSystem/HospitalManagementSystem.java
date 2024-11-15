@@ -7,20 +7,20 @@ public class HospitalManagementSystem {
 
     private static final String url = "jdbc:mysql://localhost:3306/hospital";
     private static final String username = "root";
-    private static final String password =  "anusha2003";
+    private static final String password = "anusha2003";
 
-    public static void main(String[] args){
-        try{
+    public static void main(String[] args) {
+        try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-        }catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
         Scanner scanner = new Scanner(System.in);
-        try{
+        try {
             Connection connection = DriverManager.getConnection(url, username, password);
             Patient patient = new Patient(connection, scanner);
             Doctor doctor = new Doctor(connection);
-            while(true){
+            while (true) {
                 System.out.println("HOSPITAL MANAGEMENT SYSTEM");
                 System.out.println("1. Add Patient");
                 System.out.println("2. View Patients");
@@ -30,7 +30,7 @@ public class HospitalManagementSystem {
                 System.out.println("Enter your choice: ");
                 int choice = scanner.nextInt();
 
-                switch(choice){
+                switch (choice) {
                     case 1:
                         // Add Patient
                         patient.addPatient();
@@ -61,12 +61,12 @@ public class HospitalManagementSystem {
                 }
             }
 
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public static void bookAppointment(Patient patient, Doctor doctor, Connection connection, Scanner scanner){
+    public static void bookAppointment(Patient patient, Doctor doctor, Connection connection, Scanner scanner) {
         //First inputs patients and doctors details, if doctor is available books appoinment
         System.out.print("Enter Patient Id: ");
         int patientId = scanner.nextInt();
@@ -76,46 +76,47 @@ public class HospitalManagementSystem {
         String appointmentDate = scanner.next();
 
         //Checks if the patientId and DoctorId exists
-        if(patient.getPatientById(patientId) && doctor.getDoctorById(doctorId)){
-            if(checkDoctorAvailability(doctorId, appointmentDate, connection)){
+        if (patient.getPatientById(patientId) && doctor.getDoctorById(doctorId)) {
+            if (checkDoctorAvailability(doctorId, appointmentDate, connection)) {
                 String appointmentQuery = "INSERT INTO appointments(patient_id, doctor_id, appointment_date) VALUES(?, ?, ?)";
-                try{
+                try {
                     PreparedStatement preparedStatement = connection.prepareStatement(appointmentQuery);
                     preparedStatement.setInt(1, patientId);
                     preparedStatement.setInt(2, doctorId);
                     preparedStatement.setString(3, appointmentDate);
                     int rowsAffected = preparedStatement.executeUpdate();
-                    if(rowsAffected>0){
+                    if (rowsAffected > 0) {
                         System.out.println("Appointment Booked!");
-                    }else{
+                    } else {
                         System.out.println("Failed to Book Appointment!");
                     }
-                }catch(SQLException e){
+                } catch (SQLException e) {
                     e.printStackTrace();
                 }
-            }else{
+            } else {
                 System.out.println("Doctor not available on this day!!");
             }
-        }else{
+        } else {
             System.out.println("Either doctor or patient doesn't exist!!!");
         }
     }
-    public static boolean checkDoctorAvailability(int doctorId, String appoinmentDate, Connection connection ){
+
+    public static boolean checkDoctorAvailability(int doctorId, String appoinmentDate, Connection connection) {
         String query = "SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND appointment_date = ?";
-        try{
+        try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, doctorId);
             preparedStatement.setString(2, appoinmentDate);
             ResultSet resultSet = preparedStatement.executeQuery();
-            if(resultSet.next()){
+            if (resultSet.next()) {
                 int count = resultSet.getInt(1);
-                if(count == 0){
+                if (count == 0) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             }
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
